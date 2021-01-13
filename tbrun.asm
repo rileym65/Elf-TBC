@@ -18,7 +18,7 @@ org:       equ     2000h
 
            org     8000h
            lbr     0ff00h
-           db      'TBRUN',0
+           db      'tbrun',0
            dw      0a000h
            dw      endrom+0a000h-org
            dw      org
@@ -30,8 +30,14 @@ org:       equ     2000h
            br      start
 
 include    date.inc
+include    build.inc
+           db      'Written by Michael H. Riley',0
 
-start:     mov     r2,07fffh           ; put stack at top of memory
+start:     mov     rf,0442h            ; point to high memory pointer
+           lda     rf                  ; set stack at top of memory
+           phi     r2
+           lda     rf
+           plo     r2
            ghi     ra                  ; copy argument address to rf
            phi     rf
            glo     ra
@@ -77,16 +83,36 @@ opened:    mov     rf,program          ; point to program buffer
            dw      o_close
 
            mov     rc,program          ; point to loaded program
-           mov     rd,07effh           ; set TBC stack
-           mov     rb,07000h           ; basic data
+
+           ldi     0ffh                ; set TBC stack below machine stack
+           plo     rd
+           ghi     r2
+           smi     1
+           phi     rd
+           smi     4                   ; 4 pages below for basic data
+           phi     rb
+           ldi     0
+           plo     rb
+
+;           mov     rd,07effh           ; set TBC stack
+;           mov     rb,07000h           ; basic data
            ldi     022h                ; location for end of memory
            plo     rb
-           ldi     06fh                ; high byte
+
+           ghi     rb                  ; end of memory
+           smi     1
            str     rb
            inc     rb
-           ldi     0ffh                ; low byte
+           ldi     0ffh
            str     rb
            inc     rb
+;           ldi     06fh                ; high byte
+;           str     rb
+;           inc     rb
+;           ldi     0ffh                ; low byte
+;           str     rb
+;           inc     rb
+
            pop     rf                  ; get free address
            ghi     rf                  ; and store it
            str     rb

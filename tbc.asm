@@ -65,7 +65,7 @@ org:       equ     2000h
 
            org     8000h
            lbr     0ff00h
-           db      'TBC',0
+           db      'tbc',0
            dw      9000h
            dw      endrom+9000h-org
            dw      org
@@ -76,6 +76,8 @@ org:       equ     2000h
            org     2000h
            br      start
 include    date.inc
+include    build.inc
+           db      'Written by Michael H. Riley',0
 pass:      db      0
 lineaddr:  dw      0
 linenum:   dw      0
@@ -121,7 +123,7 @@ arg_lp:    smi     '-'                 ; switches are minus sign
            lbnz    fnamelp             ; jump if not
            inc     ra                  ; increment to switch
            lda     ra                  ; get switch character
-           smi     'L'                 ; check for list
+           smi     'l'                 ; check for list
            lbnz    not_l               ; jump if not list
            ldi     low dolist          ; point to listing flag
            plo     rb
@@ -130,7 +132,7 @@ arg_lp:    smi     '-'                 ; switches are minus sign
            lbr     noargs              ; jump to skip whitespace
 not_l:     dec     ra                  ; get character again
            lda     ra
-           smi     'H"                 ; see if halt on erros
+           smi     'h'                 ; see if halt on erros
            lbnz    not_h
            ldi     low errhalt         ; point to error halt flag
            plo     rb
@@ -155,7 +157,7 @@ fnamelp:   lda     ra                  ; get byte from specified filename
            dec     rf                  ; move to terminator
            sep     scall               ; append .bas extension
            dw      append
-           db      '.BAS',0
+           db      '.bas',0
            str     r9                  ; to output filename
            ldi     high ifname         ; point to input filename
            phi     rf
@@ -281,7 +283,7 @@ nocomps:   sep     scall               ; invoke a compiler pass
            plo     rd
            sep     scall               ; and close it
            dw      o_close
-           sep     sret                ; and return to caller
+;           sep     sret                ; and return to caller
 nogood:    lbr     o_wrmboot
            sep     sret                ; return to OS
 
@@ -310,7 +312,10 @@ compile:   ldi     high buffer         ; point to buffer
            sep     sret                ; return to caller
            
 
-compgo:    glo     rd                  ; save file descriptor
+compgo:    mov     rf,buffer           ; point to input line
+           sep     scall               ; convert to uppercase
+           dw      touc
+           glo     rd                  ; save file descriptor
            stxd
            ghi     rd
            stxd
@@ -1693,6 +1698,32 @@ lineoutgo: lda     r7                  ; copy byte from table to output
            sep     scall
            dw      output
            lbr     lineoutlp           ; loop until end of table
+
+; **********************************************************
+; ***** Convert string to uppercase, honor quoted text *****
+; **********************************************************
+touc:      ldn     rf                  ; check for quote
+           smi     022h
+           lbz     touc_qt             ; jump if quote
+           ldn     rf                  ; get byte from string
+           lbz     touc_dn             ; jump if done
+           smi     'a'                 ; check if below lc
+           lbnf    touc_nxt            ; jump if so
+           smi     27                  ; check upper rage
+           lbdf    touc_nxt            ; jump if above lc
+           ldn     rf                  ; otherwise convert character to lc
+           smi     32
+           str     rf
+touc_nxt:  inc     rf                  ; point to next character
+           lbr     touc                ; loop to check rest of string
+touc_dn:   sep     sret                ; return to caller
+touc_qt:   inc     rf                  ; move past quote
+touc_qlp:  lda     rf                  ; get next character
+           lbz     touc_dn             ; exit if terminator found
+           smi     022h                ; check for quote charater
+           lbz     touc                ; back to main loop if quote
+           lbr     touc_qlp            ; otherwise keep looking
+
 
 
 
