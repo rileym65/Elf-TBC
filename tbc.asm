@@ -190,7 +190,7 @@ openerr:   ldi     high fileerr        ; point to error message
            dw      o_msg
            sep     sret                ; and return to caller
 opened:    sep     scall               ; print message
-           dw      f_inmsg
+           dw      o_inmsg
            db      'Pass 1.',10,13,0
            ldi     low pass            ; point to pass variable
            plo     rb
@@ -240,7 +240,7 @@ opened:    sep     scall               ; print message
 ; *** Now re-open input file to process 2nd pass ***
 ; **************************************************
            sep     scall               ; print message
-           dw      f_inmsg
+           dw      o_inmsg
            db      'Pass 2.',10,13,0
            ldi     high ifname         ; point to input filename
            phi     rf
