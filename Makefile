@@ -17,6 +17,13 @@ tbrun.prg: tbrun.asm bios.inc
 	rm tbrun.prg
 	mv x.prg tbrun.prg
 
+hex: $(PROJECT).rom
+	cat $(PROJECT).rom | ../tointel.pl > $(PROJECT).hex
+
+install: $(PROJECT).rom
+	cp $(PROJECT).rom ../../$(PROJECT).prg
+	cd ../.. ; ./run -R $(PROJECT).prg
+
 clean:
 	-rm tbc.prg
 	-rm tbrun.prg
