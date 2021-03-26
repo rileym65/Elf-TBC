@@ -20,6 +20,9 @@ tbrun.prg: tbrun.asm bios.inc
 hex: $(PROJECT).rom
 	cat $(PROJECT).rom | ../tointel.pl > $(PROJECT).hex
 
+bin: $(PROJECT).rom
+	../tobinary $(PROJECT).rom
+
 install: $(PROJECT).rom
 	cp $(PROJECT).rom ../../$(PROJECT).prg
 	cd ../.. ; ./run -R $(PROJECT).prg
